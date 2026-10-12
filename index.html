@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Little Memories — Puzzle & Tape Recorder</title>
+<style>
+  :root{--ink:#292820;--cream:#f6f0df;--paper:#fffaf0;--rust:#b95f43;--olive:#68704b;--muted:#777363;--line:#d8cfb9;--puzzle-image:url('baby.jpg')}
+  *{box-sizing:border-box} body{margin:0;min-height:100vh;background:radial-gradient(circle at 15% 10%,#fff9e9,transparent 35%),#e8dfca;color:var(--ink);font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif;display:grid;place-items:center;padding:24px}
+  .app{width:min(100%,980px);background:var(--paper);border:1px solid #d9cfb8;border-radius:28px;box-shadow:0 24px 70px #5b4d3020;overflow:hidden}
+  header{padding:24px 28px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);gap:12px}
+  .brand{font-weight:900;letter-spacing:.13em;text-transform:uppercase;font-size:.8rem}.brand span{color:var(--rust)} .step{font-size:.78rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+  main{padding:clamp(22px,5vw,48px)} .screen{display:none}.screen.active{display:block;animation:appear .35s ease}@keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .eyebrow{color:var(--rust);text-transform:uppercase;letter-spacing:.2em;font-size:.72rem;font-weight:800;margin:0 0 12px} h1{font-family:Georgia,serif;font-size:clamp(2.2rem,6vw,4.1rem);line-height:.98;letter-spacing:-.04em;font-weight:500;margin:0 0 14px} .intro{color:var(--muted);line-height:1.65;max-width:560px;margin:0 0 28px}
+  .welcome-card{max-width:650px;margin:0 auto;text-align:center;padding:clamp(8px,3vw,24px) 0}.welcome-card .intro{margin:0 auto 26px}.welcome-card h1{margin-bottom:18px}.memory-form{max-width:430px;margin:0 auto;text-align:left;background:#f1ead8;border:1px solid #e0d4ba;border-radius:18px;padding:22px}.memory-form label{display:block;font-size:.78rem;font-weight:800;letter-spacing:.06em;margin-bottom:9px}.memory-form input{width:100%;padding:13px 14px;border:1px solid #cfc2a6;border-radius:10px;background:#fffaf0;color:var(--ink);font:inherit;margin-bottom:14px;outline-color:var(--rust)}.memory-form .primary{width:100%}.memory-form .status{margin:8px 0 0;color:#78804f;font-size:.9rem;font-weight:700}.memory-form .status.error{color:#b95742}.memory-form small{display:block;color:var(--muted);line-height:1.5;margin-top:10px}
+  .puzzle-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(220px,.85fr);gap:32px;align-items:center}
+  .puzzle{width:100%;max-width:440px;aspect-ratio:1;display:grid;grid-template-columns:repeat(3,1fr);gap:5px;background:#d6cbb3;padding:5px;border-radius:16px;box-shadow:0 10px 25px #44341c16;touch-action:manipulation}
+  .tile{border:0;border-radius:8px;background-image:var(--puzzle-image);background-size:300% 300%;cursor:pointer;position:relative;min-width:0;transition:transform .15s,filter .15s;box-shadow:inset 0 0 0 1px #ffffff30}
+  .tile:hover{filter:brightness(1.07)}.tile:focus-visible{outline:3px solid var(--rust);outline-offset:2px}.tile.empty{background:#c6b99d;box-shadow:inset 0 3px 10px #6b583326;cursor:default}
+  .side-note{background:#f1ead8;border:1px solid #e0d4ba;border-radius:18px;padding:22px}.side-note h2{font-family:Georgia,serif;font-size:1.5rem;font-weight:500;margin:0 0 10px}.side-note p{color:var(--muted);font-size:.92rem;line-height:1.6;margin:0 0 18px}.tiny-label{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--olive);font-weight:800}
+  button{font:inherit}.primary,.secondary{border:0;border-radius:999px;padding:13px 19px;font-weight:800;cursor:pointer;transition:transform .15s,opacity .15s}.primary{background:var(--rust);color:white;box-shadow:0 6px 14px #b95f4330}.secondary{background:#e5dcc7;color:var(--ink)}button:hover{transform:translateY(-1px)}button:disabled{opacity:.45;cursor:not-allowed;transform:none}.button-row{display:flex;gap:10px;flex-wrap:wrap}.status{min-height:24px;margin:15px 0 0;color:var(--olive);font-size:.88rem;font-weight:700}
+  .recorder-wrap{max-width:610px;margin:auto}.recorder-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}.recorder-head h1{font-size:clamp(2.4rem,6vw,3.7rem)}.recorder{background:linear-gradient(145deg,#e8d8b4,#c8b58c);border:2px solid #b6a176;border-radius:24px;padding:clamp(16px,4vw,28px);box-shadow:inset 0 2px 2px #fff9d9,0 16px 30px #5d48201b;position:relative}
+  .recorder-top{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #b6a176;padding-bottom:14px;margin-bottom:18px}.recorder-name{font-weight:1000;font-size:.82rem;letter-spacing:.16em}.recorder-name span{color:var(--rust)}.led-wrap{display:flex;align-items:center;gap:7px;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em}.led{height:9px;width:9px;border-radius:50%;background:#777c56;box-shadow:0 0 0 3px #777c5622}.led.live{background:#d33c2f;box-shadow:0 0 0 4px #d33c2f24;animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.35}}
+  .cassette{background:#f0e8d6;border:2px solid #998a68;border-radius:14px;padding:16px 16px 12px;box-shadow:inset 0 2px 4px #6b59331a;margin-bottom:18px}.cassette-label{height:38px;background:#d8c8a5;border-radius:5px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:.7rem;letter-spacing:.13em;font-weight:900;color:#76684b}.reels{display:flex;justify-content:space-evenly;align-items:center;padding:18px 0 12px;gap:20px}.reel{width:clamp(66px,15vw,100px);aspect-ratio:1;border-radius:50%;border:7px solid #b8a77f;background:repeating-conic-gradient(#e4d8bc 0deg 12deg,#c8b88f 12deg 24deg);display:grid;place-items:center;box-shadow:inset 0 0 0 3px #f8f0dd,0 2px 4px #59492a30}.reel:after{content:'';width:28%;aspect-ratio:1;border-radius:50%;background:#82734f;border:5px solid #e4d8bc;box-shadow:0 0 0 2px #9d8b63}.reel.spinning{animation:spin 1.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.tape-window{height:12px;background:#6e6247;border-radius:4px;opacity:.8;margin:0 10%}
+  .meters{display:flex;gap:4px;margin:18px 0 12px}.meter{height:7px;flex:1;border-radius:2px;background:#a99b76}.meter.on{background:#78804f}.record-controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.control{border:1px solid #a69670;background:#e9dfc5;color:#4b4433;border-radius:12px;padding:13px 16px;font-size:.84rem;font-weight:900;min-width:78px;cursor:pointer;box-shadow:0 3px 0 #b7a77e}.control.record{background:#b95742;color:white;border-color:#a44a37}.control:active{transform:translateY(2px);box-shadow:0 1px 0 #b7a77e}.timer{text-align:center;font-variant-numeric:tabular-nums;font-weight:900;letter-spacing:.2em;font-size:1.25rem;margin:14px 0 0}.recording-help{text-align:center;color:var(--muted);font-size:.88rem;line-height:1.6;margin:18px auto;max-width:460px}.footer{border-top:1px solid var(--line);padding:16px 28px;color:#8b8473;font-size:.75rem;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .after-recording{display:none;margin-top:22px;padding:22px;text-align:center;background:#f1ead8;border:1px solid #e0d4ba;border-radius:18px;animation:appear .4s ease}.after-recording.visible{display:block}.after-recording h2{font-family:Georgia,serif;font-size:1.65rem;font-weight:500;margin:0 0 10px}.after-recording p:not(.eyebrow){color:var(--muted);line-height:1.65;margin:0 auto 16px;max-width:440px}
+  @media(max-width:700px){body{padding:10px}.app{border-radius:20px}header{padding:18px 20px}main{padding:24px 18px}.puzzle-layout{grid-template-columns:1fr;gap:18px}.puzzle{margin:auto}.side-note{padding:18px}.side-note p{margin-bottom:12px}.recorder-head{align-items:flex-start}.footer{padding:14px 20px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="brand">Little <span>Memories</span> ✳</div><div class="step" id="stepLabel">01 / Welcome</div></header>
+  <main>
+    <section class="screen active" id="welcomeScreen">
+      <div class="welcome-card">
+        <p class="eyebrow">A little memory, just for us ✳</p>
+        <h1>Before we<br>begin…</h1>
+        <p class="intro">Welcome to our little corner of memories. Every love story has a first page, and ours has a moment worth remembering. Answer this little question to reveal the photo puzzle waiting for you.</p>
+        <div class="memory-form">
+          <label for="firstMetAnswer">When did we first meet?</label>
+          <input id="firstMetAnswer" type="text" placeholder="MM/DD/YYYY" autocomplete="off" />
+          <button class="primary" id="beginPuzzleBtn" disabled>Unlock our photo puzzle →</button>
+          <small>Hint: the date is written as MM/DD/YYYY. Get it right to unlock the photo puzzle.</small><p class="status" id="answerFeedback" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+    <section class="screen" id="puzzleScreen">
+      <p class="eyebrow">A little something to unlock</p><h1>Piece it<br>together.</h1>
+      <p class="intro">Put the photograph back in order. When the picture is whole, your little voice-note studio will be waiting.</p>
+      <div class="puzzle-layout">
+        <div class="puzzle" id="puzzle" aria-label="Sliding photo puzzle"></div>
+        <aside class="side-note"><div class="tiny-label">Your mission · 3 × 3</div><h2>Find the picture.</h2><p>Tap a piece beside the empty space to move it. Put every piece in the right place to continue.</p><div class="button-row"><button class="primary" id="shuffleBtn">Shuffle again ↻</button><button class="secondary" id="hintBtn">Show hint</button></div><p class="status" id="puzzleStatus" aria-live="polite">Ready when you are.</p></aside>
+      </div>
+    </section>
+    <section class="screen" id="recorderScreen">
+      <div class="recorder-wrap">
+        <div class="recorder-head"><div><p class="eyebrow">Unlocked · Just for you</p><h1>Say it<br>out loud.</h1></div><button class="secondary" id="backBtn">← Puzzle</button></div>
+        <p class="intro">Some things are better heard than read. Press record and leave a little message to keep.</p>
+        <div class="recorder" aria-label="Vintage tape recorder">
+          <div class="recorder-top"><div class="recorder-name">MEMO<span>•</span> TAPE 01</div><div class="led-wrap"><span class="led" id="led"></span><span id="deviceState">Standby</span></div></div>
+          <div class="cassette"><div class="cassette-label"><span>PERSONAL MESSAGE</span><span>TYPE I · 60</span></div><div class="reels"><div class="reel" id="reelLeft"></div><div class="reel" id="reelRight"></div></div><div class="tape-window"></div></div>
+          <div class="meters" id="meters"></div>
+          <div class="record-controls"><button class="control" id="loadAudioBtn">♪ Load Tape</button><input id="audioFileInput" type="file" accept="audio/*" hidden><button class="control record" id="recordBtn">● Record</button><button class="control" id="stopBtn" disabled>■ Stop</button><button class="control" id="playBtn" disabled>▶ Play</button><button class="control" id="downloadBtn" disabled>↓ Save</button></div>
+          <div class="timer" id="timer">00:00</div>
+        </div>
+        <div class="after-recording" id="afterRecording" aria-live="polite">
+          <p class="eyebrow">A little memory to keep ♡</p>
+          <h2>Every message is part of our story.</h2>
+          <p>Thank you for saving a little piece of this moment. Some words are too special to rush — listen again whenever you need a reminder of my love.</p>
+          <button class="primary" id="replayMessageBtn">♡ Listen to my message again</button>
+        </div>
+        <p class="recording-help" id="recordingHelp" aria-live="polite">Your recording stays in this browser session until you save it. Microphone permission is required.</p>
+      </div>
+    </section>
+  </main>
+  <div class="footer"><span>MADE FOR THE MOMENTS THAT MATTER</span><span>✳ Our a little memory.</span></div>
+</div>
+<script>
+(() => {
+  const puzzleEl=document.getElementById('puzzle'), statusEl=document.getElementById('puzzleStatus');
+  const welcomeScreen=document.getElementById('welcomeScreen'), answerInput=document.getElementById('firstMetAnswer'), beginPuzzleBtn=document.getElementById('beginPuzzleBtn');
+  const puzzleScreen=document.getElementById('puzzleScreen'), recorderScreen=document.getElementById('recorderScreen');
+  const stepLabel=document.getElementById('stepLabel'); const answerFeedback=document.getElementById('answerFeedback'); const IMAGE="var(--puzzle-image)";
+  let tiles=[], hint=false, unlocked=false;
+  const solved=[0,1,2,3,4,5,6,7,8];
+  function isSolved(){return tiles.every((v,i)=>v===solved[i]);}
+  function renderPuzzle(){puzzleEl.innerHTML='';tiles.forEach((value,index)=>{const b=document.createElement('button');b.className='tile'+(value===8?' empty':'');b.setAttribute('aria-label',value===8?'Empty space':`Photo piece ${value+1}`);if(value!==8){const r=Math.floor(value/3),c=value%3;b.style.backgroundImage=IMAGE;b.style.backgroundPosition=`${c*50}% ${r*50}%`;b.style.backgroundSize='300% 300%';if(hint)b.style.filter='saturate(1.3)';}else{b.style.backgroundImage='none';b.setAttribute('aria-label','Empty space');}b.addEventListener('click',()=>move(index));puzzleEl.appendChild(b);});}
+  function move(i){if(unlocked)return;const empty=tiles.indexOf(8),r=Math.floor(i/3),c=i%3,er=Math.floor(empty/3),ec=empty%3;if(Math.abs(r-er)+Math.abs(c-ec)!==1)return;[tiles[i],tiles[empty]]=[tiles[empty],tiles[i]];renderPuzzle();if(isSolved()){unlocked=true;statusEl.textContent='Beautifully done — the recorder is unlocked!';setTimeout(showRecorder,650);}else statusEl.textContent='Nice move. Keep going!';}
+  function shuffle(){unlocked=false;tiles=[...solved];let last=-1;for(let n=0;n<120;n++){const e=tiles.indexOf(8),opts=[e-3,e+3,...(e%3!==0?[e-1]:[]),...(e%3!==2?[e+1]:[])].filter(x=>x>=0&&x<9&&x!==last);const pick=opts[Math.floor(Math.random()*opts.length)];[tiles[e],tiles[pick]]=[tiles[pick],tiles[e]];last=e;}if(isSolved())shuffle();hint=false;renderPuzzle();statusEl.textContent='A fresh shuffle. You’ve got this.';}
+  function showRecorder(){puzzleScreen.classList.remove('active');recorderScreen.classList.add('active');stepLabel.textContent='03 / Your voice note';}
+  function showPuzzle(){recorderScreen.classList.remove('active');welcomeScreen.classList.remove('active');puzzleScreen.classList.add('active');stepLabel.textContent='02 / The photo puzzle';}
+  const normalizeDate=value=>value.trim().toLowerCase().replace(/\s+/g,'').replace(/[.-]/g,'/');
+  const acceptedDates=new Set(['04/03/2025','4/3/2025','04/3/2025','4/03/2025','april3,2025','april3,2025','april3rd,2025'].map(normalizeDate));
+  answerInput.addEventListener('input',()=>{beginPuzzleBtn.disabled=!answerInput.value.trim();answerFeedback.textContent='';answerFeedback.classList.remove('error');});
+  beginPuzzleBtn.addEventListener('click',()=>{if(!answerInput.value.trim())return;if(!acceptedDates.has(normalizeDate(answerInput.value))){answerFeedback.textContent='Not quite — think of the day we first met and try again. ♡';answerFeedback.classList.add('error');return;}answerFeedback.textContent='You remembered! Let’s reveal the photo. ♡';answerFeedback.classList.remove('error');welcomeScreen.classList.remove('active');puzzleScreen.classList.add('active');stepLabel.textContent='02 / The photo puzzle';statusEl.textContent='A memory worth keeping. Now put the picture back together!';});
+  document.getElementById('shuffleBtn').addEventListener('click',shuffle);document.getElementById('hintBtn').addEventListener('click',()=>{hint=!hint;renderPuzzle();statusEl.textContent=hint?'Hint on: match the photo’s landscape and colors.':'Hint off.';});document.getElementById('backBtn').addEventListener('click',showPuzzle);
+  shuffle();
+  // Browser-native voice recorder (requires HTTPS or localhost and microphone permission).
+  const recordBtn=document.getElementById('recordBtn'),stopBtn=document.getElementById('stopBtn'),playBtn=document.getElementById('playBtn'),downloadBtn=document.getElementById('downloadBtn'),loadAudioBtn=document.getElementById('loadAudioBtn'),audioFileInput=document.getElementById('audioFileInput'),led=document.getElementById('led'),deviceState=document.getElementById('deviceState'),help=document.getElementById('recordingHelp'),timerEl=document.getElementById('timer'),leftReel=document.getElementById('reelLeft'),rightReel=document.getElementById('reelRight');
+  const afterRecording=document.getElementById('afterRecording'),replayMessageBtn=document.getElementById('replayMessageBtn');
+  // The personal voice message loads automatically from the audio file beside this HTML.
+  playBtn.disabled=false;loadAudioBtn.hidden=true;recordBtn.hidden=true;downloadBtn.hidden=true;
+  deviceState.textContent='Your message is ready';help.textContent='Your voice message is already on this tape. Press Play or “Listen to my message again.”';
+  const metersEl=document.getElementById('meters');for(let i=0;i<18;i++){const m=document.createElement('span');m.className='meter';metersEl.appendChild(m);}let mediaRecorder=null,chunks=[],audioUrl=null,audio=new Audio('little-memory-voice-note.webm'),startedAt=0,tick=null,elapsed=0,stream=null;
+  audio.preload='auto';
+  audio.load();
+    audioFileInput.addEventListener('change',()=>{const file=audioFileInput.files?.[0];if(!file)return;if(audioUrl){URL.revokeObjectURL(audioUrl);audioUrl=null;}if(audio){audio.pause();}const loadedUrl=URL.createObjectURL(file);audio=new Audio(loadedUrl);audio.addEventListener('loadedmetadata',()=>{if(Number.isFinite(audio.duration))timerEl.textContent=fmt(Math.floor(audio.duration));});audio.onended=()=>{deviceState.textContent='Tape ended';stopTimer();};playBtn.disabled=false;downloadBtn.disabled=true;deviceState.textContent='Tape loaded';help.textContent=`“${file.name}” is loaded in the tape recorder. Press Play to listen.`;afterRecording.classList.remove('visible');});
+    audio.addEventListener('loadedmetadata',()=>{if(Number.isFinite(audio.duration))timerEl.textContent=fmt(Math.floor(audio.duration));});
+    audio.addEventListener('ended',()=>{deviceState.textContent='Tape ended';stopTimer();});
+  function fmt(s){return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}function setMeters(on){[...metersEl.children].forEach((m,i)=>m.classList.toggle('on',on&&i<Math.max(2,Math.floor(Math.random()*18))));}
+  // Load an existing voice message into the cassette and play it through the recorder controls.
+  loadAudioBtn.addEventListener('click',()=>audioFileInput.click());
+  function stopTimer(){if(tick)clearInterval(tick);tick=null;leftReel.classList.remove('spinning');rightReel.classList.remove('spinning');setMeters(false);}
+  recordBtn.addEventListener('click',async()=>{if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){help.textContent='This browser does not support recording here. Try an updated browser over HTTPS.';return;}try{stream=await navigator.mediaDevices.getUserMedia({audio:true});chunks=[];mediaRecorder=new MediaRecorder(stream);mediaRecorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};mediaRecorder.onstop=()=>{const blob=new Blob(chunks,{type:mediaRecorder.mimeType||'audio/webm'});if(audioUrl)URL.revokeObjectURL(audioUrl);audioUrl=URL.createObjectURL(blob);audio=new Audio(audioUrl);audio.onended=()=>{deviceState.textContent='Standby';stopTimer();};playBtn.disabled=false;downloadBtn.disabled=false;afterRecording.classList.add('visible');help.textContent='Your voice note is ready. Play it back or save the audio file.';stream?.getTracks().forEach(t=>t.stop());};mediaRecorder.start();startedAt=Date.now();elapsed=0;timerEl.textContent='00:00';recordBtn.disabled=true;stopBtn.disabled=false;playBtn.disabled=true;downloadBtn.disabled=true;afterRecording.classList.remove('visible');led.classList.add('live');deviceState.textContent='Recording';help.textContent='Recording in progress… speak whenever you’re ready.';leftReel.classList.add('spinning');rightReel.classList.add('spinning');tick=setInterval(()=>{elapsed=Math.floor((Date.now()-startedAt)/1000);timerEl.textContent=fmt(elapsed);setMeters(true);},500);}catch(err){help.textContent=err.name==='NotAllowedError'?'Microphone access was blocked. Allow microphone access in your browser settings and try again.':'Could not start recording. Check your microphone and try again.';}});
+  stopBtn.addEventListener('click',()=>{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();recordBtn.disabled=false;stopBtn.disabled=true;led.classList.remove('live');deviceState.textContent='Saved to deck';stopTimer();if(tick===null)timerEl.textContent=fmt(elapsed);});
+  playBtn.addEventListener('click',async()=>{if(!audio)return;if(audio.paused){if(audio.currentTime>=audio.duration)audio.currentTime=0;try{await audio.play();deviceState.textContent='Playing';leftReel.classList.add('spinning');rightReel.classList.add('spinning');}catch(e){help.textContent='Playback could not start ('+(e.name||'audio error')+'). If this is the readable version, keep the voice-note file beside the HTML. Try opening in Chrome or Edge.';deviceState.textContent='Playback error';}}else{audio.pause();deviceState.textContent='Paused';stopTimer();}});
+  replayMessageBtn.addEventListener('click',()=>{if(audio){audio.pause();audio.currentTime=0;playBtn.click();}});
+  downloadBtn.addEventListener('click',()=>{if(!audioUrl)return;const a=document.createElement('a');a.href=audioUrl;a.download='little-memory-voice-note.webm';document.body.appendChild(a);a.click();a.remove();});
+})();
+</script>
+</body>
+</html>
